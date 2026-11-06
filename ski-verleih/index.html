@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ski-Verleih System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body { background-color: #f4f7f9; color: #2c3e50; }
+
+        /* Фиксированная шапка */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .navbar h1 { font-size: 22px; font-weight: 700; }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: white; }
+
+        .container { max-width: 1100px; margin: 25px auto; display: flex; flex-direction: column; gap: 35px; }
+
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-title { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .divider { height: 2px; background-color: #3498db; margin-bottom: 25px; border: none; }
+
+        /* Dashboard Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .card { border-radius: 8px; padding: 20px; color: white; text-align: center; }
+        .card h3 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+        .card .number { font-size: 40px; font-weight: 700; }
+        .card-purple { background: linear-gradient(135deg, #6c5ce7, #8e44ad); }
+        .card-pink   { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        .card-blue   { background: linear-gradient(135deg, #0984e3, #00cec9); }
+        .card-green  { background: linear-gradient(135deg, #00b894, #55efc4); }
+
+        /* Schnellzugriff */
+        .schnellzugriff-title { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 15px; }
+        .schnellzugriff-buttons { display: flex; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
+        .schnellzugriff-note { font-size: 13px; color: #64748b; font-weight: 400; line-height: 1.4; }
+
+        /* Forms & Buttons */
+        .form-row { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 180px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #475569; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; background: #f8fafc; }
+        .form-group input:focus, .form-group select:focus { border-color: #3498db; background: white; }
+
+        .btn {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .btn-blue { background-color: #2b80be; }
+        .btn-blue:hover { background-color: #1a6296; }
+        .btn-green { background-color: #27ae60; }
+        .btn-green:hover { background-color: #1e824c; }
+        .btn-gray { background-color: #64748b; }
+        .btn-gray:hover { background-color: #475569; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { text-align: left; padding: 12px 15px; font-size: 14px; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #475569; font-weight: 700; }
+        tr:hover { background-color: #f1f5f9; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 4px; height: auto; }
+
+        .help-text { font-size: 13px; color: #64748b; margin: 15px 0; line-height: 1.5; }
+        .note-text { font-size: 12px; color: #94a3b8; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h1>Ski-Verleih</h1>
+    <div class="nav-links">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#verwaltung">Ski-Verwaltung</a>
+        <a href="#personen">Personen</a>
+        <a href="#reservierungen">Reservierungen</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- 1. DASHBOARD -->
+    <section id="dashboard" class="section-card">
+        <h2 class="section-title">Dashboard</h2>
+        <hr class="divider">
+
+        <div class="stats-grid">
+            <div class="card card-purple"><h3>Verfügbare Ski</h3><div class="number" id="stat-available">0</div></div>
+            <div class="card card-pink"><h3>Ausgeliehene Ski</h3><div class="number" id="stat-rented">0</div></div>
+            <div class="card card-blue"><h3>Gesamt Ski</h3><div class="number" id="stat-total">0</div></div>
+            <div class="card card-green"><h3>Registrierte Personen</h3><div class="number" id="stat-persons">0</div></div>
+        </div>
+
+        <h3 class="schnellzugriff-title">Schnellzugriff</h3>
+        <div class="schnellzugriff-buttons">
+            <a href="#verwaltung" class="btn btn-blue">Bestand verwalten</a>
+            <a href="#personen" class="btn btn-blue">Personen verwalten</a>
+            <a href="#reservierungen" class="btn btn-green">Neue Ausleihe</a>
+        </div>
+        <p class="schnellzugriff-note">
+            Verfügbar = jetzt weder reserviert noch ausgeliehen. Zukünftige Buchungen werden bei der Reservierung geprüft.
+        </p>
+    </section>
+
+    <!-- 2. SKI-VERWALTUNG -->
+    <section id="verwaltung" class="section-card">
+        <h2 class="section-title">Ski-Verwaltung</h2>
+        <hr class="divider">
+
+        <form id="itemForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Bezeichnung (Ski)</label>
+                    <input type="text" name="name" required placeholder="z.B. Atomic Redster">
+                </div>
+                <div class="form-group">
+                    <label>Details</label>
+                    <input type="text" name="details" required placeholder="z.B. Slalom, 170 cm">
+                </div>
+                <div class="form-group">
+                    <label>Preis pro Stunde (€)</label>
+                    <input type="number" step="0.5" name="hourly_rate" required placeholder="12.00">
+                </div>
+                <button type="submit" class="btn btn-blue">Speichern</button>
+                <button type="reset" class="btn btn-gray">Zurücksetzen</button>
+            </div>
+        </form>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Bezeichnung</th>
+                <th>Details</th>
+                <th>€/Stunde</th>
+                <th>Aktion</th>
+            </tr>
+            </thead>
+            <tbody id="itemsTableBody">
+            <tr><td colspan="4">Lade Daten...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 3. PERSONEN -->
+    <section id="personen" class="section-card">
+        <h2 class="section-title">Personen</h2>
+        <hr class="divider">
+
+        <form id="personForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" name="name" required placeholder="z.B. Max Mustermann">
+                </div>
+                <div class="form-group">
+                    <label>Ausweistyp</label>
+                    <select name="ausweis_typ">
+                        <option value="Personalausweis">Personalausweis</option>
+                        <option value="Reisepass">Reisepass</option>
+                        <option value="Führerschein">Führerschein</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ausweisnummer</label>
+                    <input type="text" name="ausweis_nr" required placeholder="z.B. AB123456">
+                </div>
+                <div class="form-group">
+                    <label>Scan (Dokument)</label>
+                    <input type="file" name="ausweis_file">
+                </div>
+                <button type="submit" class="btn btn-blue">Person hinzufügen</button>
+            </div>
+        </form>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Ausweistyp</th>
+                <th>Ausweisnummer</th>
+                <th>Datei</th>
+            </tr>
+            </thead>
+            <tbody id="personsTableBody">
+            <tr><td colspan="4">Keine Personen registriert</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 4. RESERVIERUNGEN -->
+    <section id="reservierungen" class="section-card">
+        <h2 class="section-title">Reservierungen & Ausleihen</h2>
+        <hr class="divider">
+
+        <form id="rentalForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ski-Modell</label>
+                    <select name="item_name" id="itemSelect" required>
+                        <option value="">Bitte wählen</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Person</label>
+                    <select name="person_name" id="personSelect" required>
+                        <option value="">Zuerst Eintrag anlegen</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Beginn</label>
+                    <input type="datetime-local" name="start_time" id="startTimeInput" required>
+                </div>
+                <div class="form-group">
+                    <label>Ende</label>
+                    <input type="datetime-local" name="end_time" id="endTimeInput" required>
+                </div>
+                <button type="submit" class="btn btn-blue">Reservieren</button>
+            </div>
+        </form>
+
+        <p class="help-text">
+            Jede angefangene Stunde wird berechnet. Der Stundensatz bleibt bei einer Preisänderung für bestehende Buchungen erhalten. Bei Rückgabe zählt die tatsächliche Dauer ab reserviertem Beginn.
+        </p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Ski / Person</th>
+                <th>Zeitraum</th>
+                <th>Status</th>
+                <th>Preis</th>
+                <th>Aktionen</th>
+            </tr>
+            </thead>
+            <tbody id="rentalsTableBody">
+            <tr><td colspan="5">Keine Ausleihen vorhanden</td></tr>
+            </tbody>
+        </table>
+
+        <p class="note-text">
+            Ausgabe ist ab Beginn bis zum Ende der Reservierung möglich. Eine laufende Ausleihe blockiert weitere Buchungen bis zur Rückgabe.
+        </p>
+    </section>
+
+</div>
+
+<script>
+    function setDefaultDates() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('startTimeInput').value = now.toISOString().slice(0, 16);
+
+        const end = new Date(now.getTime() + 60 * 60 * 1000);
+        document.getElementById('endTimeInput').value = end.toISOString().slice(0, 16);
+    }
+
+    async function loadAllData() {
+        // Загрузка статистики
+        try {
+            const resStats = await fetch('/api/stats');
+            if (resStats.ok && resStats.headers.get("content-type")?.includes("application/json")) {
+                const dataStats = await resStats.json();
+                document.getElementById('stat-available').innerText = dataStats.available_ski || 0;
+                document.getElementById('stat-rented').innerText = dataStats.rented_ski || 0;
+                document.getElementById('stat-total').innerText = dataStats.total_ski || 0;
+                document.getElementById('stat-persons').innerText = dataStats.total_persons || 0;
+            }
+        } catch (e) {}
+
+        // Загрузка инвентаря (с защитой от отсутствия API)
+        const itemsTbody = document.getElementById('itemsTableBody');
+        const itemSelect = document.getElementById('itemSelect');
+        let itemsLoaded = false;
+
+        try {
+            const resItems = await fetch('/api/items');
+            if (resItems.ok && resItems.headers.get("content-type")?.includes("application/json")) {
+                const items = await resItems.json();
+                if (items && items.length > 0) {
+                    itemsTbody.innerHTML = items.map(item => `
+                        <tr>
+                            <td><b>${item.name}</b></td>
+                            <td>${item.details || 'Standard'}</td>
+                            <td>€ ${item.hourly_rate.toFixed(2)}</td>
+                            <td><button class="btn btn-blue btn-sm">Bearbeiten</button></td>
+                        </tr>
+                    `).join('');
+                    itemSelect.innerHTML = '<option value="">Bitte wählen</option>' + items.map(i => `<option value="${i.name}">${i.name} (€${i.hourly_rate}/Std)</option>`).join('');
+                    itemsLoaded = true;
+                }
+            }
+        } catch (e) {}
+
+        // Если API нет (как в базовой версии), подставляем стандартные лыжи
+        if (!itemsLoaded) {
+            itemsTbody.innerHTML = `
+                <tr>
+                    <td><b>Atomic Redster</b></td>
+                    <td>Slalom, 170 cm</td>
+                    <td>€ 12.00</td>
+                    <td><button class="btn btn-gray btn-sm" disabled>Basis-Modell</button></td>
+                </tr>`;
+            itemSelect.innerHTML = '<option value="">Bitte wählen</option><option value="Atomic Redster">Atomic Redster (€12.00/Std)</option>';
+        }
+
+        // Загрузка людей
+        try {
+            const resPersons = await fetch('/api/persons');
+            if (resPersons.ok && resPersons.headers.get("content-type")?.includes("application/json")) {
+                const persons = await resPersons.json();
+                const personsTbody = document.getElementById('personsTableBody');
+                const personSelect = document.getElementById('personSelect');
+
+                if (persons && persons.length > 0) {
+                    personsTbody.innerHTML = persons.map(p => `
+                        <tr>
+                            <td><b>${p.name}</b></td>
+                            <td>${p.ausweis_typ}</td>
+                            <td>${p.ausweis_nr}</td>
+                            <td>${p.ausweis_file || '—'}</td>
+                        </tr>
+                    `).join('');
+                    personSelect.innerHTML = '<option value="">Bitte wählen</option>' + persons.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                } else {
+                    personsTbody.innerHTML = '<tr><td colspan="4">Keine Personen registriert</td></tr>';
+                    personSelect.innerHTML = '<option value="">Zuerst Eintrag anlegen</option>';
+                }
+            }
+        } catch (e) {}
+
+        // Загрузка аренды
+        try {
+            const resRentals = await fetch('/api/rentals');
+            if (resRentals.ok && resRentals.headers.get("content-type")?.includes("application/json")) {
+                const rentals = await resRentals.json();
+                const rentalsTbody = document.getElementById('rentalsTableBody');
+
+                if (rentals && rentals.length > 0) {
+                    rentalsTbody.innerHTML = rentals.map(r => `
+                        <tr>
+                            <td><b>${r.item_name}</b><br><small style="color:#64748b">${r.person_name}</small></td>
+                            <td>${new Date(r.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(r.end_time || r.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                            <td><span style="background:#e0f2fe; color:#0369a1; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:600">${r.status || 'Ausgeliehen'}</span></td>
+                            <td>€ ${r.total_price.toFixed(2)}</td>
+                            <td><button class="btn btn-gray btn-sm">Rückgabe</button></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    rentalsTbody.innerHTML = '<tr><td colspan="5">Keine Ausleihen vorhanden</td></tr>';
+                }
+            }
+        } catch (e) {}
+    }
+
+    document.getElementById('itemForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try { await fetch('/api/items', { method: 'POST', body: new FormData(e.target) }); } catch(e){}
+        e.target.reset(); loadAllData();
+    });
+
+    document.getElementById('personForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try { await fetch('/api/persons', { method: 'POST', body: new FormData(e.target) }); } catch(e){}
+        e.target.reset(); loadAllData();
+    });
+
+    document.getElementById('rentalForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try { await fetch('/api/rentals', { method: 'POST', body: new FormData(e.target) }); } catch(e){}
+        e.target.reset(); loadAllData();
+    });
+
+    setDefaultDates();
+    loadAllData();
+</script>
+</body>
+</html>

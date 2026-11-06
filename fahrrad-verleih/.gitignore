@@ -1,0 +1,5 @@
+.idea/
+uploads/*
+!uploads/.gitkeep
+*.exe
+*.log
